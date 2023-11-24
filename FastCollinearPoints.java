@@ -5,15 +5,43 @@ import edu.princeton.cs.algs4.StdOut;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
 
 public class FastCollinearPoints {
     private ArrayList<LineSegment> segments;
+    private ArrayList<Pair> pairs;
+
+
+    private class Pair {
+        private final Point p;
+        private final Point q;
+
+        Pair(Point p, Point q) {
+            this.p = p;
+            this.q = q;
+        }
+
+
+        public boolean equals(Object obj) {
+            // obj = (Pair) obj;
+            return obj.getClass() == Pair.class && ((Pair) obj).p.compareTo(this.p) == 0
+                    && ((Pair) obj).q.compareTo(this.q) == 0;
+        }
+
+        public int hashCode() {
+            return Objects.hash(p, q);
+        }
+    }
 
     public FastCollinearPoints(Point[] points) {
-        segments = new ArrayList<LineSegment>();
+        // segments = new ArrayList<LineSegment>();
+        pairs = new ArrayList<>();
+
         for (int i = 0; i < points.length; i++) {
             Point p = points[i];
-
+            if (p == null) {
+                throw new IllegalArgumentException();
+            }
             int length = points.length;
             Point[] myPoints = new Point[length - 1];
 
@@ -52,8 +80,20 @@ public class FastCollinearPoints {
                 if (lastSlope != slope) {
                     if (streak >= 3) {
                         // StdOut.println("Streak loop" + streak);
-                        segments.add(new LineSegment(minPoint, maxPoint));
+                        // segments.add(new LineSegment(minPoint, maxPoint));
+                        boolean good = true;
+                        Pair newPair = new Pair(minPoint, maxPoint);
+                        for (Pair pair : pairs) {
+                            if (pair.equals(newPair)) {
+                                good = false;
+                                break;
+                            }
+                        }
+                        if (good) {
+                            pairs.add(newPair);
+                        }
                     }
+
                     streak = 1;
                     minPoint = p.compareTo(myPoint) < 0 ? p : myPoint;
                     maxPoint = p.compareTo(myPoint) > 0 ? p : myPoint;
@@ -71,7 +111,18 @@ public class FastCollinearPoints {
             // StdOut.println("Ended loop" + streak);
             if (streak >= 3) {
                 // StdOut.println("Ended loop");
-                segments.add(new LineSegment(minPoint, maxPoint));
+                // segments.add(new LineSegment(minPoint, maxPoint));
+                boolean good = true;
+                Pair newPair = new Pair(minPoint, maxPoint);
+                for (Pair pair : pairs) {
+                    if (pair.equals(newPair)) {
+                        good = false;
+                        break;
+                    }
+                }
+                if (good) {
+                    pairs.add(newPair);
+                }
             }
 
         }
@@ -80,11 +131,13 @@ public class FastCollinearPoints {
     }     // finds all line segments containing 4 or more points
 
     public int numberOfSegments() {        // the number of line segments
-        return segments.size();
+        return pairs.size();
     }
 
     public LineSegment[] segments() {                // the line segments
-        return segments.toArray(new LineSegment[0]);
+        return pairs.stream().map(pair -> new LineSegment(pair.p, pair.q))
+                    .toArray(LineSegment[]::new);
+        // return segments.toArray(new LineSegment[0]);
     }
 
     public static void main(String[] args) {
