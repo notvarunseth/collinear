@@ -5,14 +5,16 @@ import edu.princeton.cs.algs4.StdOut;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Objects;
+import java.util.List;
 
 public class FastCollinearPoints {
     private ArrayList<LineSegment> segments;
     private ArrayList<Pair> pairs;
 
 
-    private class Pair {
+    private class Pair implements Comparable<Pair> {
+
+
         private final Point p;
         private final Point q;
 
@@ -21,27 +23,61 @@ public class FastCollinearPoints {
             this.q = q;
         }
 
-
-        public boolean equals(Object obj) {
-            // obj = (Pair) obj;
-            return obj.getClass() == Pair.class && ((Pair) obj).p.compareTo(this.p) == 0
-                    && ((Pair) obj).q.compareTo(this.q) == 0;
+        public int compareTo(Pair that) {
+            /* YOUR CODE HERE */
+            int pCompared = this.p.compareTo(that.p);
+            int qCompared = this.q.compareTo(that.q);
+            if (pCompared == 0 && qCompared == 0) {
+                return 0;
+            }
+            if (pCompared < 0 || (pCompared == 0 && qCompared < 0)) {
+                return -1;
+            }
+            return 1;
         }
 
-        public int hashCode() {
-            return Objects.hash(p, q);
-        }
+
     }
 
     public FastCollinearPoints(Point[] points) {
         // segments = new ArrayList<LineSegment>();
+
+
+        if (points == null || points.length == 0) {
+            throw new IllegalArgumentException();
+        }
+
+        List<Point> existingPoints = new ArrayList<Point>();
+        int left;
+        int right;
+        int mid;
+        int midValue;
+        for (Point point : points) {
+            if (point == null) {
+                throw new IllegalArgumentException();
+            }
+            left = 0;
+            right = existingPoints.size();
+            while (left < right) {
+                mid = (left + right) / 2;
+                midValue = existingPoints.get(mid).compareTo(point);
+                if (midValue == 0) {
+                    throw new IllegalArgumentException();
+                }
+                if (midValue < 0) {
+                    left = mid + 1;
+                }
+                else {
+                    right = mid;
+                }
+            }
+            existingPoints.add(point);
+        }
+
         pairs = new ArrayList<>();
 
         for (int i = 0; i < points.length; i++) {
             Point p = points[i];
-            if (p == null) {
-                throw new IllegalArgumentException();
-            }
             int length = points.length;
             Point[] myPoints = new Point[length - 1];
 
@@ -83,14 +119,35 @@ public class FastCollinearPoints {
                         // segments.add(new LineSegment(minPoint, maxPoint));
                         boolean good = true;
                         Pair newPair = new Pair(minPoint, maxPoint);
-                        for (Pair pair : pairs) {
-                            if (pair.equals(newPair)) {
+                        // binary search
+                        left = 0;
+                        right = pairs.size();
+
+                        while (left < right) {
+                            mid = (left + right) / 2;
+
+                            midValue = pairs.get(mid).compareTo(newPair);
+                            if (midValue == 0) {
                                 good = false;
                                 break;
                             }
+                            if (midValue < 0) {
+                                left = mid + 1;
+                            }
+                            else {
+                                right = mid;
+                            }
                         }
+
+                        // for (Pair pair : pairs) {
+                        //     if (pair.equals(newPair)) {
+                        //         good = false;
+                        //         break;
+                        //     }
+                        // }
+
                         if (good) {
-                            pairs.add(newPair);
+                            pairs.add(left, newPair);
                         }
                     }
 

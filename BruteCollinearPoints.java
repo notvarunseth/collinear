@@ -5,6 +5,7 @@ import edu.princeton.cs.algs4.StdOut;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 public class BruteCollinearPoints {
     private ArrayList<LineSegment> segments;
@@ -17,7 +18,42 @@ public class BruteCollinearPoints {
     public BruteCollinearPoints(Point[] points) {    // finds all line segments containing 4 points
 
         segments = new ArrayList<LineSegment>();
+
+
+        if (points == null || points.length == 0) {
+            throw new IllegalArgumentException();
+        }
+
+        List<Point> existingPoints = new ArrayList<Point>();
+        int left;
+        int right;
+        int mid;
+        int midValue;
+        for (Point point : points) {
+            if (point == null) {
+                throw new IllegalArgumentException();
+            }
+            left = 0;
+            right = existingPoints.size();
+            while (left < right) {
+                mid = (left + right) / 2;
+                midValue = existingPoints.get(mid).compareTo(point);
+                if (midValue == 0) {
+                    throw new IllegalArgumentException();
+                }
+                if (midValue < 0) {
+                    left = mid + 1;
+                }
+                else {
+                    right = mid;
+                }
+            }
+            existingPoints.add(point);
+        }
+
+
         for (int i = 0; i < points.length; i++) {
+
             if (points[i] == null) {
                 throw new IllegalArgumentException();
             }
