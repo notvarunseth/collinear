@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class BruteCollinearPoints {
-    private ArrayList<LineSegment> segments;
+    private List<LineSegment> segments;
 
     // private float getSquaredDistance(Point point1, Point point2) {
     //     return ((point1.x - point2.x) ^ 2 + (point1.y - point2.y) ^ 2);
@@ -24,39 +24,26 @@ public class BruteCollinearPoints {
             throw new IllegalArgumentException();
         }
 
-        List<Point> existingPoints = new ArrayList<Point>();
-        int left;
-        int right;
-        int mid;
-        int midValue;
         for (Point point : points) {
             if (point == null) {
                 throw new IllegalArgumentException();
             }
-            left = 0;
-            right = existingPoints.size();
-            while (left < right) {
-                mid = (left + right) / 2;
-                midValue = existingPoints.get(mid).compareTo(point);
-                if (midValue == 0) {
-                    throw new IllegalArgumentException();
-                }
-                if (midValue < 0) {
-                    left = mid + 1;
-                }
-                else {
-                    right = mid;
-                }
-            }
-            existingPoints.add(point);
         }
 
+        points = Arrays.stream(points).sorted(Point::compareTo).toArray(Point[]::new);
+        for (int i = 1; i < points.length; i++) {
+            if (points[i].compareTo(points[i - 1]) == 0) {
+                throw new IllegalArgumentException();
+            }
+        }
+        if (points.length < 4) {
+            return;
+        }
+
+        // Object[] foo = Arrays.stream(myPoints).sorted(comparator).toArray();
 
         for (int i = 0; i < points.length; i++) {
 
-            if (points[i] == null) {
-                throw new IllegalArgumentException();
-            }
             for (int j = i + 1; j < points.length; j++) {
                 for (int k = j + 1; k < points.length; k++) {
                     for (int m = k + 1; m < points.length; m++) {
@@ -70,12 +57,13 @@ public class BruteCollinearPoints {
                         }
                         if (comparator.compare(point2, point4) != 0) continue;
 
-                        Point[] array = { point1, point2, point3, point4 };
-                        Point minPoint = Arrays.stream(array).min(Point::compareTo).orElse(null);
-                        Point maxPoint = Arrays.stream(array).max(Point::compareTo).orElse(null);
+                        segments.add(new LineSegment(point1, point4));
+                        // Point[] array = { point1, point2, point3, point4 };
+                        // Point minPoint = Arrays.stream(array).min(Point::compareTo).orElse(null);
+                        // Point maxPoint = Arrays.stream(array).max(Point::compareTo).orElse(null);
                         // StdOut.println("i: " + i + "j: " + j + "k: " + k + "m: " + m);
                         // StdOut.println("min: " + minPoint + "max: " + maxPoint);
-                        segments.add(new LineSegment(minPoint, maxPoint));
+                        // segments.add(new LineSegment(minPoint, maxPoint));
                     }
                 }
             }

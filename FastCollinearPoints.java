@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FastCollinearPoints {
-    private ArrayList<LineSegment> segments;
-    private ArrayList<Pair> pairs;
+    private LineSegment[] segments;
+    private List<Pair> pairs;
 
 
     private class Pair implements Comparable<Pair> {
@@ -40,41 +41,37 @@ public class FastCollinearPoints {
     }
 
     public FastCollinearPoints(Point[] points) {
-        // segments = new ArrayList<LineSegment>();
-
+        pairs = new ArrayList<>();
+        segments = new LineSegment[0];
 
         if (points == null || points.length == 0) {
             throw new IllegalArgumentException();
         }
-
-        List<Point> existingPoints = new ArrayList<Point>();
-        int left;
-        int right;
-        int mid;
-        int midValue;
         for (Point point : points) {
             if (point == null) {
                 throw new IllegalArgumentException();
             }
-            left = 0;
-            right = existingPoints.size();
-            while (left < right) {
-                mid = (left + right) / 2;
-                midValue = existingPoints.get(mid).compareTo(point);
-                if (midValue == 0) {
-                    throw new IllegalArgumentException();
-                }
-                if (midValue < 0) {
-                    left = mid + 1;
-                }
-                else {
-                    right = mid;
-                }
-            }
-            existingPoints.add(point);
         }
 
-        pairs = new ArrayList<>();
+
+        Point[] points2 = Arrays.stream(points).sorted(Point::compareTo).toArray(Point[]::new);
+        for (int i = 1; i < points2.length; i++) {
+            if (points2[i].compareTo(points2[i - 1]) == 0) {
+                throw new IllegalArgumentException();
+            }
+        }
+
+
+        if (points.length < 4) {
+            return;
+        }
+        // Object[] foo = Arrays.stream(myPoints).sorted(comparator).toArray();
+
+        int left;
+        int right;
+        int mid;
+        int midValue;
+
 
         for (int i = 0; i < points.length; i++) {
             Point p = points[i];
@@ -97,14 +94,14 @@ public class FastCollinearPoints {
             }
             Comparator<Point> comparator = p.slopeOrder();
 
-            Object[] foo = Arrays.stream(myPoints).sorted(comparator).toArray();
+            Point[] foo = Arrays.stream(myPoints).sorted(comparator).toArray(Point[]::new);
 
             // for (int m = 0; m < foo.length; m++) {
             // StdOut.println("i: " + i + " m: " + m + " point: " + foo[m]);
             // }
 
             int streak = 1;
-            Point firstPoint = (Point) foo[0];
+            Point firstPoint = foo[0];
             double lastSlope = p.slopeTo(firstPoint);
 
             Point minPoint = p.compareTo(firstPoint) < 0 ? p : firstPoint;
@@ -139,12 +136,6 @@ public class FastCollinearPoints {
                             }
                         }
 
-                        // for (Pair pair : pairs) {
-                        //     if (pair.equals(newPair)) {
-                        //         good = false;
-                        //         break;
-                        //     }
-                        // }
 
                         if (good) {
                             pairs.add(left, newPair);
@@ -171,18 +162,53 @@ public class FastCollinearPoints {
                 // segments.add(new LineSegment(minPoint, maxPoint));
                 boolean good = true;
                 Pair newPair = new Pair(minPoint, maxPoint);
-                for (Pair pair : pairs) {
-                    if (pair.equals(newPair)) {
+
+                left = 0;
+                right = pairs.size();
+
+                while (left < right) {
+                    mid = (left + right) / 2;
+
+                    midValue = pairs.get(mid).compareTo(newPair);
+                    if (midValue == 0) {
                         good = false;
                         break;
                     }
+                    if (midValue < 0) {
+                        left = mid + 1;
+                    }
+                    else {
+                        right = mid;
+                    }
                 }
+
+                // for (Pair pair : pairs) {
+                //     if (pair.equals(newPair)) {
+                //         good = false;
+                //         break;
+                //     }
+                // }
                 if (good) {
                     pairs.add(newPair);
                 }
             }
 
         }
+
+        pairs = pairs.stream().sorted(Pair::compareTo).collect(Collectors.toList());
+        List<Pair> pairs2 = new ArrayList<>();
+        Pair lastElement = null;
+        Pair pair;
+        for (int i = 0; i < pairs.size(); i++) {
+            pair = pairs.get(i);
+            if (lastElement == null || lastElement.compareTo(pair) != 0) {
+                pairs2.add(pair);
+                lastElement = pair;
+            }
+        }
+        pairs = pairs2;
+        segments = pairs.stream().map(pair1 -> new LineSegment(pair1.p, pair1.q))
+                        .toArray(LineSegment[]::new);
 
 
     }     // finds all line segments containing 4 or more points
@@ -192,8 +218,7 @@ public class FastCollinearPoints {
     }
 
     public LineSegment[] segments() {                // the line segments
-        return pairs.stream().map(pair -> new LineSegment(pair.p, pair.q))
-                    .toArray(LineSegment[]::new);
+        return segments;
         // return segments.toArray(new LineSegment[0]);
     }
 
