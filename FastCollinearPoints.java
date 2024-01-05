@@ -107,7 +107,7 @@ public class FastCollinearPoints {
             Point minPoint = p.compareTo(firstPoint) < 0 ? p : firstPoint;
             Point maxPoint = p.compareTo(firstPoint) > 0 ? p : firstPoint;
             for (int k = 1; k < foo.length; k++) {
-                Point myPoint = (Point) foo[k];
+                Point myPoint = foo[k];
                 double slope = p.slopeTo(myPoint);
 
                 if (lastSlope != slope) {
@@ -181,13 +181,7 @@ public class FastCollinearPoints {
                         right = mid;
                     }
                 }
-
-                // for (Pair pair : pairs) {
-                //     if (pair.equals(newPair)) {
-                //         good = false;
-                //         break;
-                //     }
-                // }
+                
                 if (good) {
                     pairs.add(newPair);
                 }
@@ -198,9 +192,7 @@ public class FastCollinearPoints {
         pairs = pairs.stream().sorted(Pair::compareTo).collect(Collectors.toList());
         List<Pair> pairs2 = new ArrayList<>();
         Pair lastElement = null;
-        Pair pair;
-        for (int i = 0; i < pairs.size(); i++) {
-            pair = pairs.get(i);
+        for (Pair pair : pairs) {
             if (lastElement == null || lastElement.compareTo(pair) != 0) {
                 pairs2.add(pair);
                 lastElement = pair;
@@ -218,7 +210,8 @@ public class FastCollinearPoints {
     }
 
     public LineSegment[] segments() {                // the line segments
-        return segments;
+        // return segments;
+        return Arrays.copyOf(segments, segments.length);
         // return segments.toArray(new LineSegment[0]);
     }
 
